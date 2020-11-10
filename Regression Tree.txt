@@ -1,0 +1,55 @@
+
+##### Modelling Regression Trees #####
+# dataset = cu.summary  # Got data from the April, 1990 issue of Consumer Reports. -> in rpart package
+
+# Requirement libraries
+library(rpart)
+library(rpart.plot)
+library(tree)
+head(cu.summary)
+names(cu.summary)
+dim(cu.summary)
+summary(cu.summary)
+
+# Split data: trainset 90% & testset 10% 
+set.seed(2)
+ind = sample(2,nrow(cu.summary),replace=TRUE,prob=c(.9,.1))
+train = cu.summary[ind==1,] 
+test = cu.summary[ind==2,] 
+
+# grow tree
+
+fit = rpart(Mileage ~ .,
+   method= "anova",data=train)
+
+attributes(fit)
+printcp(fit) # display the results
+plotcp(fit) # visualize cross-validation results
+summary(fit) # detailed summary of splits
+print(fit) # view results 
+
+# plot tree
+rpart.plot(fit,box.palette= "RdBu",shadow.col="gray",nn=TRUE)
+par(mfrow=c(2,1))
+plot(fit, uniform=TRUE,main="Regression Tree for Mileage ")
+text(fit, use.n=TRUE, all=TRUE, cex=.8)
+
+# create additional plots
+par(mfrow=c(1,2)) # two plots on one page
+rsq.rpart(fit) # visualize cross-validation results  
+
+#pruning Tree
+pfit = prune(fit,cp=fit$cptable[which.min(fit$cptable[,"xerror"]),"CP"])
+ print(pfit)
+ plot(pfit)
+text(pfit, use.n=T)
+
+rpart.plot(pfit,box.palette="RdBu", shadow.col="gray", nn=TRUE)
+tree.cS = tree(Mileage ~ .,
+   method= "anova",data=train)
+tree.cS
+
+# Compute the accuracy of the pruned tree
+# train a decision tree
+# prediction
+test$pred = predict(pfit, test)
